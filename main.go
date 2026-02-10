@@ -1,10 +1,9 @@
 package main
 
 import (
+	"github.com/culnaen/ss-tulpn-go/cmd"
 	"log/slog"
 	"os"
-
-	
 )
 
 func main() {
