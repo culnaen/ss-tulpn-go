@@ -24,13 +24,12 @@ type Entity struct {
 
 func GetUserEntities() (map[uint64]*Entity, error) {
 	user_entities := make(map[uint64]*Entity)
-	// TODO: Переименовать _files, где это не files, а может быть и directory
-	proc_files, err := os.ReadDir(PROC_ROOT)
+
+	proc_dir, err := os.ReadDir(PROC_ROOT)
 	if err != nil {
-		slog.Error("Error read directory: %v", "err", err)
 		return user_entities, err
 	}
-	for _, proc_file := range proc_files {
+	for _, proc_file := range proc_dir {
 		var process_name string
 
 		proc_file_name := proc_file.Name()
@@ -40,10 +39,9 @@ func GetUserEntities() (map[uint64]*Entity, error) {
 			continue
 		}
 
-		proc_fd_path := filepath.Join(PROC_ROOT, proc_file_name, "/fd/")
+		proc_fd_path := filepath.Join(PROC_ROOT, proc_file_name, "fd")
 		proc_fds, err := os.ReadDir(proc_fd_path)
 		if err != nil {
-			slog.Debug("Error read directory: %v", "err", err)
 			return user_entities, err
 		}
 
@@ -65,19 +63,17 @@ func GetUserEntities() (map[uint64]*Entity, error) {
 				var inode uint64
 				_, err := fmt.Sscanf(link, "socket:[%d]", &inode)
 				if err != nil {
-					slog.Debug("Error sscanf inode: %v", "err", err)
+					return user_entities, err
 				}
 
 				if process_name == "" {
 					first_char := byte('(')
 					last_char := byte(')')
-					proc_pid_stat := filepath.Join(PROC_ROOT, proc_file_name, "/stat/")
+					proc_pid_stat := filepath.Join(PROC_ROOT, proc_file_name, "stat")
 					if file, err := os.Open(proc_pid_stat); err != nil {
-						slog.Error("Error open file: %v", "err", err)
 						return user_entities, err
 					} else {
 						if data, err := io.ReadAll(file); err != nil {
-							slog.Error("Error read file: %v", "err", err)
 							return user_entities, err
 						} else {
 							// TODO: Решить проблему с "sd-pam)"
@@ -104,7 +100,7 @@ func GetUserEntities() (map[uint64]*Entity, error) {
 func Execute() error {
 	user_entities, err := GetUserEntities()
 	if err != nil {
-		slog.Error("Error get user entities: %v", "err", err)
+		return err
 	}
 	fmt.Printf("%-*s ", 10, "State")
 	fmt.Printf("%-6s %-6s ", "Recv-Q", "Send-Q")
@@ -113,12 +109,12 @@ func Execute() error {
 		15, "Peer Address", 5, "Port",
 		10, "Process",
 	)
-	proc_net_tcp_path := "/proc/net/tcp"
+	proc_net_tcp_path := filepath.Join(PROC_ROOT, "net", "tcp")
 	if file, err := os.Open(proc_net_tcp_path); err != nil {
-		slog.Error("Error open file: %v", "err", err)
+		return err
 	} else {
 		if bytes, err := io.ReadAll(file); err != nil {
-			slog.Error("Error read file: %v", "err", err)
+			return err
 		} else {
 			tcp_data := strings.Split(strings.TrimSpace(string(bytes)), "\n")[1:]
 			for _, socket := range tcp_data {
@@ -129,7 +125,7 @@ func Execute() error {
 
 					_, err := fmt.Sscanf(socket_data[1], "%2x%2x%2x%2x:%x", &l1, &l2, &l3, &l4, &lp1)
 					if err != nil {
-						slog.Error("Error: %x", "err", err)
+						return err
 					}
 
 					remote_address_port := "0.0.0.0:*"
@@ -137,7 +133,7 @@ func Execute() error {
 					var transmit_queue, receive_queue uint
 					_, err = fmt.Sscanf(socket_data[4], "%8x:%8x", &transmit_queue, &receive_queue)
 					if err != nil {
-						slog.Error("Error: %x", "err", err)
+						return err
 					}
 
 					inode, err := strconv.ParseUint(socket_data[9], 10, 64)
@@ -163,7 +159,7 @@ func Execute() error {
 		}
 	}
 
-	proc_net_udp_path := "/proc/net/udp"
+	proc_net_udp_path := filepath.Join(PROC_ROOT, "net", "udp")
 	if file, err := os.Open(proc_net_udp_path); err != nil {
 		slog.Error("Error open file: %v", "err", err)
 	} else {
@@ -179,7 +175,7 @@ func Execute() error {
 
 					_, err := fmt.Sscanf(socket_data[1], "%2x%2x%2x%2x:%x", &l1, &l2, &l3, &l4, &lp1)
 					if err != nil {
-						slog.Error("Error: %x", "err", err)
+						return err
 					}
 
 					remote_address_port := "0.0.0.0:*"
@@ -187,7 +183,7 @@ func Execute() error {
 					var transmit_queue, receive_queue uint
 					_, err = fmt.Sscanf(socket_data[4], "%8x:%8x", &transmit_queue, &receive_queue)
 					if err != nil {
-						slog.Error("Error: %x", "err", err)
+						return err
 					}
 
 					inode, err := strconv.ParseUint(socket_data[9], 10, 64)
