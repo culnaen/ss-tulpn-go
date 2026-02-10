@@ -39,7 +39,7 @@ func GetUserEntities() (map[uint64]*Entity, error) {
 			continue
 		}
 
-		proc_fd_path := filepath.Join(PROC_ROOT, proc_file_name, "/fd/")
+		proc_fd_path := filepath.Join(PROC_ROOT, proc_file_name, "fd")
 		proc_fds, err := os.ReadDir(proc_fd_path)
 		if err != nil {
 			return user_entities, err
@@ -69,7 +69,7 @@ func GetUserEntities() (map[uint64]*Entity, error) {
 				if process_name == "" {
 					first_char := byte('(')
 					last_char := byte(')')
-					proc_pid_stat := filepath.Join(PROC_ROOT, proc_file_name, "/stat/")
+					proc_pid_stat := filepath.Join(PROC_ROOT, proc_file_name, "stat")
 					if file, err := os.Open(proc_pid_stat); err != nil {
 						return user_entities, err
 					} else {
@@ -108,7 +108,7 @@ func Execute() error {
 		15, "Peer Address", 5, "Port",
 		10, "Process",
 	)
-	proc_net_tcp_path := "/proc/net/tcp"
+	proc_net_tcp_path := filepath.Join(PROC_ROOT, "net", "tcp")
 	if file, err := os.Open(proc_net_tcp_path); err != nil {
 		return err
 	} else {
@@ -158,7 +158,7 @@ func Execute() error {
 		}
 	}
 
-	proc_net_udp_path := "/proc/net/udp"
+	proc_net_udp_path := filepath.Join(PROC_ROOT, "net", "udp")
 	if file, err := os.Open(proc_net_udp_path); err != nil {
 		slog.Error("Error open file: %v", "err", err)
 	} else {
