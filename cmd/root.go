@@ -24,13 +24,13 @@ type Entity struct {
 
 func GetUserEntities() (map[uint64]*Entity, error) {
 	user_entities := make(map[uint64]*Entity)
-	// TODO: Переименовать _files, где это не files, а может быть и directory
-	proc_files, err := os.ReadDir(PROC_ROOT)
+
+	proc_dir, err := os.ReadDir(PROC_ROOT)
 	if err != nil {
 		slog.Error("Error read directory: %v", "err", err)
 		return user_entities, err
 	}
-	for _, proc_file := range proc_files {
+	for _, proc_file := range proc_dir {
 		var process_name string
 
 		proc_file_name := proc_file.Name()
