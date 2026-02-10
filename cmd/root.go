@@ -80,6 +80,7 @@ func GetUserEntities() (map[uint64]*Entity, error) {
 							slog.Error("Error read file: %v", "err", err)
 							return user_entities, err
 						} else {
+							// TODO: Решить проблему с "sd-pam)"
 							first_index := bytes.IndexByte(data, first_char)
 							last_index := first_index + bytes.IndexByte(data[first_index:], last_char)
 							process_name = string(data[first_index+1 : last_index])
@@ -144,7 +145,7 @@ func Execute() error {
 						return err
 					}
 					user_entity := user_entities[inode]
-
+					// TODO: Поправить форматирование
 					fmt.Printf(
 						"%-10s %-6d %-6d %4d.%d.%d.%d:%-5d %4s (%q,pid=%d,fd=%d)\n",
 						"LISTEN",
@@ -200,6 +201,7 @@ func Execute() error {
 						process = fmt.Sprintf("(%q,pid=%d,fd=%d)", user_entity.name, user_entity.pid, user_entity.fd)
 					}
 
+					// TODO: Поправить форматирование
 					fmt.Printf(
 						"%-10s %-6d %-6d %4d.%d.%d.%d:%-5d %-15s %-10s\n",
 						"UNCONN",
