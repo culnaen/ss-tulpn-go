@@ -124,7 +124,7 @@ func Execute() error {
 
 					_, err := fmt.Sscanf(socket_data[1], "%2x%2x%2x%2x:%x", &l1, &l2, &l3, &l4, &lp1)
 					if err != nil {
-						return err
+						slog.Error("Error scanning address:port", "err", err, "file", proc_net_tcp_path)
 					}
 
 					remote_address_port := "0.0.0.0:*"
@@ -132,12 +132,12 @@ func Execute() error {
 					var transmit_queue, receive_queue uint
 					_, err = fmt.Sscanf(socket_data[4], "%8x:%8x", &transmit_queue, &receive_queue)
 					if err != nil {
-						return err
+						slog.Error("Error scanning tq:rq", "err", err, "file", proc_net_tcp_path)
 					}
 
 					inode, err := strconv.ParseUint(socket_data[9], 10, 64)
 					if err != nil {
-						return err
+						slog.Error("Error scanning inode", "err", err, "file", proc_net_tcp_path)
 					}
 					user_entity := user_entities[inode]
 					// TODO: Поправить форматирование
@@ -160,10 +160,10 @@ func Execute() error {
 
 	proc_net_udp_path := filepath.Join(PROC_ROOT, "net", "udp")
 	if file, err := os.Open(proc_net_udp_path); err != nil {
-		slog.Error("Error open file: %v", "err", err)
+		return err
 	} else {
 		if bytes, err := io.ReadAll(file); err != nil {
-			slog.Error("Error read file: %v", "err", err)
+			return err
 		} else {
 			udp_data := strings.Split(strings.TrimSpace(string(bytes)), "\n")[1:]
 			for _, socket := range udp_data {
@@ -174,7 +174,7 @@ func Execute() error {
 
 					_, err := fmt.Sscanf(socket_data[1], "%2x%2x%2x%2x:%x", &l1, &l2, &l3, &l4, &lp1)
 					if err != nil {
-						return err
+						slog.Error("Error scanning address:port", "err", err, "file", proc_net_udp_path)
 					}
 
 					remote_address_port := "0.0.0.0:*"
@@ -182,12 +182,12 @@ func Execute() error {
 					var transmit_queue, receive_queue uint
 					_, err = fmt.Sscanf(socket_data[4], "%8x:%8x", &transmit_queue, &receive_queue)
 					if err != nil {
-						return err
+						slog.Error("Error scanning tq:rq", "err", err, "file", proc_net_udp_path)
 					}
 
 					inode, err := strconv.ParseUint(socket_data[9], 10, 64)
 					if err != nil {
-						return err
+						slog.Error("Error scanning inode", "err", err, "file", proc_net_udp_path)
 					}
 
 					user_entity, exists := user_entities[inode]
