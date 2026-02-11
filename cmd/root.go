@@ -76,7 +76,6 @@ func GetUserEntities() (map[uint64]*Entity, error) {
 						if data, err := io.ReadAll(file); err != nil {
 							return user_entities, err
 						} else {
-							// TODO: Решить проблему с "sd-pam)"
 							first_index := bytes.IndexByte(data, first_char)
 							last_index := first_index + bytes.IndexByte(data[first_index:], last_char)
 							process_name = string(data[first_index+1 : last_index])
